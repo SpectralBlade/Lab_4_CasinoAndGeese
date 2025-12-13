@@ -1,20 +1,26 @@
-from src.power import power_function
-from src.constants import SAMPLE_CONSTANT
-
+from Lab_4_CasinoAndGeese.src.create_simulation import run_simulation
 
 def main() -> None:
-    """
-    Обязательнная составляющая программ, которые сдаются. Является точкой входа в приложение
-    :return: Данная функция ничего не возвращает
-    """
+    try:
+        player_count = int(input("Введите начальное кол-во игроков: "))
+        goose_count = int(input("Введите начальное кол-во гусей: "))
 
-    target, degree = map(int, input("Введите два числа разделенные пробелом: ").split(" "))
+        seed_input = input("Введите seed (или оставьте пустым для случайного): ").strip()
+        seed = int(seed_input) if seed_input else None
 
-    result = power_function(target=target, power=degree)
+        steps_input = input("Введите количество ходов (по умолчанию 50): ").strip()
+        steps = int(steps_input) if steps_input else 50
 
-    print(result)
+    except ValueError:
+        print("Ошибка ввода: необходимо вводить целые числа.")
+        return
 
-    print(SAMPLE_CONSTANT)
+    run_simulation(
+        player_count=player_count,
+        goose_count=goose_count,
+        steps=steps,
+        seed=seed
+    )
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,275 @@
+from Lab_4_CasinoAndGeese.src.collections.goose_collection import GooseCollection
+from Lab_4_CasinoAndGeese.src.collections.player_collection import PlayerCollection
+from Lab_4_CasinoAndGeese.src.collections.casino_collection import CasinoCollection
+from Lab_4_CasinoAndGeese.src.classes.goose import WarGoose, HonkGoose, HealerGoose
+from Lab_4_CasinoAndGeese.src.classes.player import Player
+from Lab_4_CasinoAndGeese.src.logger import Logger
+from Lab_4_CasinoAndGeese.src.func_to_goose import CMD_TO_GOOSE
+from Lab_4_CasinoAndGeese.src.name_choices import PLAYER_NAMES, GOOSE_NAMES
+
+import random
+import time
+from typing import Literal
+
+class Casino:
+    def __init__(self, players: PlayerCollection, geese: GooseCollection):
+        self.players = players
+        self.geese = geese
+        self.logger = Logger()
+        self.balances = CasinoCollection()
+        self.current_step = 0
+        self.minimal_bid = 200
+        self.game_ended = False
+
+    def check_player_balance(self, player: Player):
+        if player.balance < self.minimal_bid:
+            self.logger.logging_message(
+                f'Игрок {player.repr()} - околобанкрот! ({player.balance}$). Ему придется идти в Т-Банк за кредитом. :('
+            )
+            self.give_credit_to_player(player)
+
+    def new_player_add(self, name: str, age: int, balance: int, credit_count: int, armor: int = 0):
+        dummy = Player(name, age, balance, credit_count, armor)
+        self.players + dummy
+        self.balances + dummy
+        self.logger.logging_message(f'{dummy} вошел в игорный дом!')
+
+    def new_goose_add(self, name: str, type: Literal['Воюющий', 'Лечащий', 'Крикливый'], power: int):
+        honker = CMD_TO_GOOSE[type](name, power)
+        self.geese.__add__(honker)
+        self.logger.logging_message(f'{honker} вылупился из яйца!')
+
+    def make_a_bid(self, player: Player):
+        if player.balance < self.minimal_bid:
+            self.logger.logging_message(
+                f'Игрок {player.repr()} не может сделать ставку — недостаточно средств! :(.'
+            )
+            self.give_credit_to_player(player)
+            return
+
+        max_bid = max(self.minimal_bid, (int(player.balance/1.5) - 200))
+
+        ruletka_bid = random.randint(self.minimal_bid, max_bid)
+        self.balances[player] -= ruletka_bid
+        self.logger.logging_message(f'Игрок {player.repr()} сделал ставку {ruletka_bid}$ в игровом автомате!\nКрутим слоты...')
+        time.sleep(1)
+        winning_coefficient = random.randint(1, 10000)
+        if winning_coefficient in range(1, 5000):
+            cash_won = 0
+            self.logger.logging_message(
+                f'Какая неудача! Игрок {player.repr()} потерял всю ставку!')
+        elif winning_coefficient in range(5000, 7500):
+            cash_won = int(ruletka_bid*0.5)
+            self.logger.logging_message(
+                f'Аутсайдер... Игрок {player.repr()} выиграл всего лишь {cash_won}$!')
+        elif winning_coefficient in range(7500, 8750):
+            cash_won = ruletka_bid
+            self.logger.logging_message(
+                f'Не повезло... Игрок {player.repr()} выиграл свою ставку {cash_won}$!')
+        elif winning_coefficient in range(8750, 9375):
+            cash_won = ruletka_bid*2
+            self.logger.logging_message(
+                f'Удача! Игрок {player.repr()} выиграл {cash_won}$!')
+        elif winning_coefficient in range(9375, 9675):
+            cash_won = ruletka_bid*5
+            self.logger.logging_message(
+                f'Крупная удача! Игрок {player.repr()} выиграл {cash_won}$!')
+        elif winning_coefficient in range(9675, 9975):
+            cash_won = ruletka_bid*10
+            self.logger.logging_message(
+                f'Огромная удача! Игрок {player.repr()} выиграл {cash_won}$!')
+        else:
+            cash_won = ruletka_bid*100
+            self.logger.logging_message(
+                f'АБСОЛЮТНЫЙ ДЖЕКПОТ!!! Игрок {player.repr()} выиграл {cash_won}$!!!')
+        self.balances[player] += cash_won
+        self.check_player_balance(player)
+
+    def eject_player(self, player: Player):
+        self.players.__delitem__(player)
+        self.logger.logging_message(f'Игрок {player.repr()} сослан в лес на вечное заточение!')
+
+    def cook_goose(self, goose: WarGoose | HealerGoose | HonkGoose):
+        self.geese.__delitem__(goose)
+        self.logger.logging_message(f'Гусь {goose.repr()} был зажарен на костре и подан в качестве ужина!')
+
+    def all_goose_buff(self, multiplier: float):
+        self.logger.logging_message(f'Сила всех гусей была увеличена в {multiplier} раз!')
+        for goose in self.geese:
+            goose.power = int(goose.power * multiplier)
+
+    def all_player_restock(self):
+        surplus = 5000
+        self.logger.logging_message(f'СЛУЧАЙНОЕ СОБЫТИЕ: СТЕПУХА ПРИШЛА!\nСидя за игровым столом, молодые люди даже и не '
+                                    f'заметили, как на телефонах всех из них прозвучало уведомление... \nТолько после окончания'
+                                    f'круга, под счастливый визг и звон бокалов, они отпраздновали приход стипендии...\n'
+                                    f'Кошельки всех игроков пополнены на 5000$!')
+        for player in self.players:
+            self.balances[player] += surplus
+
+    def player_attacks_goose(self, player: Player, goose: WarGoose | HealerGoose | HonkGoose):
+        damage = 400
+        goose.hp -= damage
+
+        self.logger.logging_message(
+            f'Игрок {player.repr()} в ярости напал на гуся {goose.repr()}, желая прогнать, и нанёс ему {damage} урона!\n'
+            f'Текущее здоровье гуся: {max(goose.hp, 0)} HP'
+        )
+
+        if goose.hp <= 0:
+            self.logger.logging_message(
+                f'Увы! Гусь {goose.repr()} пал в неравном бою!'
+            )
+            self.cook_goose(goose)
+
+    def new_member_appearance(self):
+        i = random.randint(1, 2)
+        self.logger.logging_message(f'Кажется... в нашем казино пополнение!')
+        if i == 1:
+            name = random.choice(PLAYER_NAMES)
+            age = random.randint(16, 45)
+            balance = random.randint(1000, 5000)
+            credit_count = random.randint(0, 2)
+            self.new_player_add(name, age, balance, credit_count)
+        elif i == 2:
+            name = random.choice(GOOSE_NAMES)
+            type = random.choice(['Воюющий', 'Лечащий', 'Крикливый'])
+            stat = random.randint(250, 500)
+            self.new_goose_add(name, type, stat)
+
+    def honkgoose_screams(self, goose: HonkGoose):
+        dropped_money = goose.scream()
+        for player in self.players:
+            self.balances[player] -= dropped_money
+        self.logger.logging_message(f'Гусь {goose.repr()} кричит, и от испуга все игроки выронили по {dropped_money}$!')
+        for player in self.players:
+            if player.balance < 0:
+                self.balances[player] = 0
+                self.check_player_balance(player)
+
+    def healergoose_heals(self, goose: HealerGoose, target: HealerGoose | WarGoose | HonkGoose):
+        refill_health = goose.heal()
+        target.hp += refill_health
+        self.logger.logging_message(f'Гусь {goose.repr()} своими магическими силами длинного клюва исцелил гуся {target.repr()} на {refill_health} HP!\nТекущее здоровье гуся: {target.hp} HP')
+
+    def wargoose_bites(self, goose: WarGoose, target: Player):
+        money_stolen = goose.hard_attack()
+        money_stolen = min(money_stolen, target.balance)
+        self.balances[target] -= money_stolen
+        self.logger.logging_message(f'Наглый гусь {goose.repr()} больно укусил игрока {target.repr()} за ногу! Игрок теряет выпавшие у него из рук {money_stolen}$.')
+        self.check_player_balance(target)
+
+    def give_credit_to_player(self, player: Player):
+        if player.can_take_credit() == 1:
+            self.balances[player] += 15000
+            player.credit_count += 1
+            self.logger.logging_message(f'Из-за долговой ямы игрок {player.repr()} '
+                                        f'принял решение взять 15000$ в кредит! Сможет ли он отыграться?\nОсталось доступно в кредитной истории: {3-player.credit_count} займа(ов).')
+        elif player.credit_count <= 2:
+            pass
+        else:
+            self.logger.logging_message(f'Игроку {player.repr()} было отказано в кредите...')
+            self.eject_player(player)
+
+    def take_credit_from_player(self, player: Player):
+        if player.can_pay_credit() == 1:
+            self.balances[player] -= 20000
+            player.credit_count -= 1
+            self.logger.logging_message(f'Поздравим игрока {player.repr()}! Он смог выплатить долг по кредиту '
+                                        f'№{player.credit_count+1}!\nТекущее количество кредитов у игрока: {player.credit_count}.')
+
+    def regular_goose_attack(self, goose: WarGoose | HealerGoose | HonkGoose, player: Player):
+        stolen_money = goose.attack()
+        dnd_chance = random.randint(1, 10)
+        self.logger.logging_message(f'Гусь {goose.repr()} внезапно кусает игрока {player.repr()}!')
+        if dnd_chance <= player.armor:
+            goose.hp -= 250
+            self.logger.logging_message(f'Гусь промахнулся и упал! Он ушибся и потерял 250 здоровья!\nТекущее здоровье гуся: {goose.hp}')
+            if goose.hp <= 0:
+                self.cook_goose(goose)
+        else:
+            self.balances[player] -= stolen_money
+            self.logger.logging_message(f'Успех! От неожиданности игрок выронил {stolen_money}$!\nТекущий баланс игрока: {player.balance}$')
+            self.check_player_balance(player)
+
+    def player_trains_in_gym(self, player: Player):
+        if player.can_train_in_gym:
+            player.armor += 1
+            player.balance -= player.armor*1000
+            self.logger.logging_message(f'Игрок {player.repr()} посетил подвальную качалку и повысил свою ловкость!\nТекущее значение: {player.armor}/10.')
+
+    def blood_moon_emit(self, multiplier: float):
+        self.logger.logging_message(f'СЛУЧАЙНОЕ СОБЫТИЕ: КРОВАВАЯ ЛУНА!\nВ темную ночь, когда все игроки спокойно раскладывают покер...\n'
+                                    f'Никто не смотрит за окно, а там - пробуждается кровавая луна... Гуси бурлят гневом, и их глаза наливаются яростью...')
+        self.all_goose_buff(multiplier)
+
+    def list_all_members(self):
+        self.logger.logging_message('Игроки и гуси на текущем ходе:')
+        for player in self.players:
+            self.logger.logging_message(player, with_step=False)
+        for goose in self.geese:
+            self.logger.logging_message(goose, with_step=False)
+
+    def win_message_check(self):
+        if self.players is None:
+            print(f'КОНЕЦ СИМУЛЯЦИИ! Гуси сослали всех игроков в лес!\nТекущие гуси:\n')
+            for goose in self.geese:
+                self.logger.logging_message(goose, with_step=False)
+            self.game_ended = True
+        elif self.geese is None:
+            print(f'КОНЕЦ СИМУЛЯЦИИ! Игроки поджарили на вертеле всех гусей!\nТекущие игроки:\n')
+            for player in self.players:
+                self.logger.logging_message(player, with_step=False)
+            self.game_ended = True
+
+    def random_event_choose(self):
+        roll = random.randint(1, 110)
+
+        self.win_message_check()
+        random_player = random.choice(self.players)
+        random_goose = random.choice(self.geese)
+
+        healer_geese = self.geese.get_by_type(HealerGoose)
+        war_geese = self.geese.get_by_type(WarGoose)
+        honk_geese = self.geese.get_by_type(HonkGoose)
+
+        if roll <= 15:
+            self.make_a_bid(random_player)
+
+        elif roll <= 25:
+            self.player_trains_in_gym(random_player)
+
+        elif roll <= 40:
+            self.regular_goose_attack(random_goose, random_player)
+
+        elif roll <= 50:
+            self.take_credit_from_player(random_player)
+
+        elif roll <= 60:
+            self.give_credit_to_player(random_player)
+
+        elif roll <= 70 and honk_geese:
+            self.honkgoose_screams(random.choice(honk_geese))
+
+        elif roll <= 80 and healer_geese and len(self.geese) > 1:
+            healer = random.choice(healer_geese)
+            target = random.choice([g for g in self.geese if g != healer])
+            self.healergoose_heals(healer, target)
+
+        elif roll <= 90 and war_geese:
+            self.wargoose_bites(random.choice(war_geese), random_player)
+
+        elif roll <= 100:
+            self.player_attacks_goose(random_player, random_goose)
+
+        elif roll <= 103:
+            self.blood_moon_emit(multiplier=random.choice([1.2, 1.3, 1.4]))
+
+        elif roll <= 107:
+            self.all_player_restock()
+
+        elif roll <= 110:
+            self.new_member_appearance()
+
+        else:
+            self.random_event_choose()
