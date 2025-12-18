@@ -2,7 +2,7 @@ class Player:
 
     _id = 1
 
-    def __init__(self, name: str, age: int, balance: int, credit_count: int, armor: int = 0):
+    def __init__(self, name: str, age: int, balance: int, credit_count: int, armor: int = 0, damage: int = 400):
         self.name = name
         self.age = age
         self.balance = balance
@@ -10,6 +10,8 @@ class Player:
         self.ingameid = Player._id
         self.armor = armor
         self.train_cost = armor*1000
+        self.damage = damage
+        self.damage_level = 0
         Player._id += 1
 
     def __str__(self):
@@ -26,3 +28,7 @@ class Player:
 
     def can_train_in_gym(self, armor: int):
         return self.balance >= 1000*(armor+1)
+
+    def can_train_damage(self) -> bool:
+        cost = 2000 * (self.damage_level + 1)
+        return self.balance >= cost

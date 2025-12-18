@@ -1,8 +1,8 @@
 import pytest
 from Lab_4_CasinoAndGeese.src.classes.player import Player
 from Lab_4_CasinoAndGeese.src.classes.goose import WarGoose, HealerGoose, HonkGoose
-from Lab_4_CasinoAndGeese.src.collections.player_collection import PlayerCollection
-from Lab_4_CasinoAndGeese.src.collections.goose_collection import GooseCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.player_collection import PlayerCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.goose_collection import GooseCollection
 from Lab_4_CasinoAndGeese.src.classes.casino import Casino
 
 @pytest.fixture

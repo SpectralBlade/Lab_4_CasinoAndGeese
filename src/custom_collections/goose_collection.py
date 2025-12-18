@@ -1,4 +1,4 @@
-from src.classes.goose import WarGoose, HealerGoose, HonkGoose
+from Lab_4_CasinoAndGeese.src.classes.goose import WarGoose, HealerGoose, HonkGoose
 
 T = [WarGoose, HonkGoose, HealerGoose]
 

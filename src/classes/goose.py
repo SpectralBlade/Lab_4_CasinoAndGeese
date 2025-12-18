@@ -16,7 +16,7 @@ class Goose:
         return f'№{self.ingameid} {self.name}'
 
     def attack(self):
-        money_stolen = random.randint(250, 500)
+        money_stolen = random.choice([0.7, 0.8, 1.1, 1.2])
         return money_stolen
 
 class WarGoose(Goose):

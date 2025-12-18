@@ -1,6 +1,6 @@
-from Lab_4_CasinoAndGeese.src.collections.goose_collection import GooseCollection
-from Lab_4_CasinoAndGeese.src.collections.player_collection import PlayerCollection
-from Lab_4_CasinoAndGeese.src.collections.casino_collection import CasinoCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.goose_collection import GooseCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.player_collection import PlayerCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.casino_collection import CasinoCollection
 from Lab_4_CasinoAndGeese.src.classes.goose import WarGoose, HonkGoose, HealerGoose
 from Lab_4_CasinoAndGeese.src.classes.player import Player
 from Lab_4_CasinoAndGeese.src.logger import Logger
@@ -108,7 +108,7 @@ class Casino:
             self.balances[player] += surplus
 
     def player_attacks_goose(self, player: Player, goose: WarGoose | HealerGoose | HonkGoose):
-        damage = 400
+        damage = (400*int(1.5*player.damage_level+1))
         goose.hp -= damage
 
         self.logger.logging_message(
@@ -139,8 +139,11 @@ class Casino:
 
     def honkgoose_screams(self, goose: HonkGoose):
         dropped_money = goose.scream()
+
         for player in self.players:
-            self.balances[player] -= dropped_money
+            loss = min(dropped_money, player.balance)
+            self.balances[player] -= loss
+
         self.logger.logging_message(f'Гусь {goose.repr()} кричит, и от испуга все игроки выронили по {dropped_money}$!')
         for player in self.players:
             if player.balance < 0:
@@ -179,12 +182,13 @@ class Casino:
                                         f'№{player.credit_count+1}!\nТекущее количество кредитов у игрока: {player.credit_count}.')
 
     def regular_goose_attack(self, goose: WarGoose | HealerGoose | HonkGoose, player: Player):
-        stolen_money = goose.attack()
+        stolen_money = int(goose.power*goose.attack())
         dnd_chance = random.randint(1, 10)
         self.logger.logging_message(f'Гусь {goose.repr()} внезапно кусает игрока {player.repr()}!')
         if dnd_chance <= player.armor:
-            goose.hp -= 250
-            self.logger.logging_message(f'Гусь промахнулся и упал! Он ушибся и потерял 250 здоровья!\nТекущее здоровье гуся: {goose.hp}')
+            lost_hp = int(goose.hp*0.3)
+            goose.hp -= lost_hp
+            self.logger.logging_message(f'Гусь промахнулся и упал! Он ушибся и потерял {lost_hp} здоровья!\nТекущее здоровье гуся: {goose.hp}')
             if goose.hp <= 0:
                 self.cook_goose(goose)
         else:
@@ -198,6 +202,18 @@ class Casino:
             player.balance -= player.armor*1000
             self.logger.logging_message(f'Игрок {player.repr()} посетил подвальную качалку и повысил свою ловкость!\nТекущее значение: {player.armor}/10.')
 
+    def player_trains_damage(self, player: Player):
+        cost = 2000 * (player.damage_level + 1)
+
+        if player.can_train_damage():
+            self.balances[player] -= cost
+            player.damage_level += 1
+
+            self.logger.logging_message(
+                f'Игрок {player.repr()} посетил гаражные соревнования по боксу и повысил свою силу!\n'
+                f'Текущий урон: {400*int(1.5*player.damage_level+1)}\n'
+            )
+        
     def blood_moon_emit(self, multiplier: float):
         self.logger.logging_message(f'СЛУЧАЙНОЕ СОБЫТИЕ: КРОВАВАЯ ЛУНА!\nВ темную ночь, когда все игроки спокойно раскладывают покер...\n'
                                     f'Никто не смотрит за окно, а там - пробуждается кровавая луна... Гуси бурлят гневом, и их глаза наливаются яростью...')
@@ -211,12 +227,12 @@ class Casino:
             self.logger.logging_message(goose, with_step=False)
 
     def win_message_check(self):
-        if self.players is None:
+        if not self.players.players:
             print(f'КОНЕЦ СИМУЛЯЦИИ! Гуси сослали всех игроков в лес!\nТекущие гуси:\n')
             for goose in self.geese:
                 self.logger.logging_message(goose, with_step=False)
             self.game_ended = True
-        elif self.geese is None:
+        elif not self.geese.geese:
             print(f'КОНЕЦ СИМУЛЯЦИИ! Игроки поджарили на вертеле всех гусей!\nТекущие игроки:\n')
             for player in self.players:
                 self.logger.logging_message(player, with_step=False)
@@ -226,6 +242,8 @@ class Casino:
         roll = random.randint(1, 110)
 
         self.win_message_check()
+        if self.game_ended:
+            return
         random_player = random.choice(self.players)
         random_goose = random.choice(self.geese)
 
@@ -238,6 +256,9 @@ class Casino:
 
         elif roll <= 25:
             self.player_trains_in_gym(random_player)
+
+        elif roll <= 35:
+            self.player_trains_damage(random_player)
 
         elif roll <= 40:
             self.regular_goose_attack(random_goose, random_player)
@@ -262,7 +283,7 @@ class Casino:
         elif roll <= 100:
             self.player_attacks_goose(random_player, random_goose)
 
-        elif roll <= 103:
+        elif roll <= 102:
             self.blood_moon_emit(multiplier=random.choice([1.2, 1.3, 1.4]))
 
         elif roll <= 107:

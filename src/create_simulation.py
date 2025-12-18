@@ -1,5 +1,5 @@
-from Lab_4_CasinoAndGeese.src.collections.player_collection import PlayerCollection
-from Lab_4_CasinoAndGeese.src.collections.goose_collection import GooseCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.player_collection import PlayerCollection
+from Lab_4_CasinoAndGeese.src.custom_collections.goose_collection import GooseCollection
 from name_choices import PLAYER_NAMES, GOOSE_NAMES
 from Lab_4_CasinoAndGeese.src.classes.casino import Casino
 import time
@@ -26,16 +26,14 @@ def run_simulation(player_count: int, goose_count: int, steps: int, seed: int | 
         casino_777_banana.new_goose_add(random.choice(GOOSE_NAMES), type, stat)
 
     for i in range(1, steps+1):
+        if casino_777_banana.game_ended:
+            break
         casino_777_banana.current_step = i
         casino_777_banana.logger.set_step(i)
         casino_777_banana.random_event_choose()
-        time.sleep(1)
         if i % 10 == 0:
             os.system('cls' if os.name == 'nt' else 'clear')
             casino_777_banana.list_all_members()
-
-    if not casino_777_banana.game_ended:
-        casino_777_banana.list_all_members()
 
 
 
