@@ -391,7 +391,7 @@ class Casino:
         на игроков, гусей или общее состояние игры.
         :return: Данная функция ничего не возвращает
         """
-        roll = random.randint(1, 110)
+        roll = random.randint(1, 100)
 
         self.win_message_check()
         if self.game_ended:
@@ -418,30 +418,27 @@ class Casino:
         elif roll <= 50:
             self.take_credit_from_player(random_player)
 
-        elif roll <= 60:
-            self.give_credit_to_player(random_player)
-
-        elif roll <= 70 and honk_geese:
+        elif roll <= 60 and honk_geese:
             self.honkgoose_screams(random.choice(honk_geese))
 
-        elif roll <= 80 and healer_geese and len(self.geese) > 1:
+        elif roll <= 70 and healer_geese and len(self.geese) > 1:
             healer = random.choice(healer_geese)
             target = random.choice([g for g in self.geese if g != healer])
             self.healergoose_heals(healer, target)
 
-        elif roll <= 90 and war_geese:
+        elif roll <= 80 and war_geese:
             self.wargoose_bites(random.choice(war_geese), random_player)
 
-        elif roll <= 100:
+        elif roll <= 90:
             self.player_attacks_goose(random_player, random_goose)
 
-        elif roll <= 102:
+        elif roll <= 92:
             self.blood_moon_emit(multiplier=random.choice([1.2, 1.3, 1.4]))
 
-        elif roll <= 107:
+        elif roll <= 97:
             self.all_player_restock()
 
-        elif roll <= 110:
+        elif roll <= 100:
             self.new_member_appearance()
 
         else:
