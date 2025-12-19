@@ -1,5 +1,7 @@
 from Lab_4_CasinoAndGeese.src.classes.goose import WarGoose, HonkGoose, HealerGoose
 
+# Функции для создания гусей определенного типа со словарем
+
 def create_war_goose(name: str, power: int) -> WarGoose:
     return WarGoose(name, power)
 
@@ -14,13 +16,3 @@ CMD_TO_GOOSE = {
     "Лечащий": create_healer_goose,
     "Крикливый": create_honk_goose,
 }
-
-RANDOM_EVENTS = [
-    'heal',
-    'heavy_attack',
-    'honk',
-    'deposit',
-    'take_credit',
-    'pay_credit',
-    'train_in_gym',
-]

@@ -11,6 +11,16 @@ def main() -> None:
         steps_input = input("Введите количество ходов (по умолчанию 50): ").strip()
         steps = int(steps_input) if steps_input else 50
 
+        time_mode = int(input(
+            "Выберите режим времени:\n"
+            "0 — задержка 2 сек после каждого хода\n"
+            "1 — задержка 3 сек на 9, 19, 29... ходах\n"
+            "2 — без задержек\n"
+        ))
+
+        if time_mode not in (0, 1, 2):
+            raise ValueError
+
     except ValueError:
         print("Ошибка ввода: необходимо вводить целые числа.")
         return
@@ -19,7 +29,8 @@ def main() -> None:
         player_count=player_count,
         goose_count=goose_count,
         steps=steps,
-        seed=seed
+        seed=seed,
+        time_mode=time_mode
     )
 
 if __name__ == "__main__":

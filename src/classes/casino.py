@@ -8,11 +8,16 @@ from Lab_4_CasinoAndGeese.src.func_to_goose import CMD_TO_GOOSE
 from Lab_4_CasinoAndGeese.src.name_choices import PLAYER_NAMES, GOOSE_NAMES
 
 import random
-import time
 from typing import Literal
 
 class Casino:
-    def __init__(self, players: PlayerCollection, geese: GooseCollection):
+    def __init__(self, players: PlayerCollection, geese: GooseCollection) -> None:
+        """
+        Функция инициализации казино.
+        :param players: пользовательская коллекция с классами игроков.
+        :param geese: пользовательская коллекция с классами гусей.
+        :return: Данная функция ничего не возвращает
+        """
         self.players = players
         self.geese = geese
         self.logger = Logger()
@@ -21,25 +26,56 @@ class Casino:
         self.minimal_bid = 200
         self.game_ended = False
 
-    def check_player_balance(self, player: Player):
+    def check_player_balance(self, player: Player) -> None:
+        """
+        Проверяет баланс игрока и при необходимости отправляет его за кредитом.
+        Если баланс игрока меньше минимальной ставки, вызывается процедура выдачи кредита.
+        :param player: объект игрока, баланс которого проверяется.
+        :return: Данная функция ничего не возвращает
+        """
         if player.balance < self.minimal_bid:
             self.logger.logging_message(
                 f'Игрок {player.repr()} - околобанкрот! ({player.balance}$). Ему придется идти в Т-Банк за кредитом. :('
             )
             self.give_credit_to_player(player)
 
-    def new_player_add(self, name: str, age: int, balance: int, credit_count: int, armor: int = 0):
+    def new_player_add(self, name: str, age: int, balance: int, credit_count: int, armor: int = 0) -> None:
+        """
+        Добавляет нового игрока в казино.
+        Создаёт объект игрока, добавляет его в коллекцию игроков и регистрирует баланс.
+        :param name: имя игрока
+        :param age: возраст игрока
+        :param balance: начальный баланс игрока
+        :param credit_count: количество уже взятых кредитов
+        :param armor: уровень ловкости игрока
+        :return: Данная функция ничего не возвращает
+        """
         dummy = Player(name, age, balance, credit_count, armor)
         self.players + dummy
         self.balances + dummy
         self.logger.logging_message(f'{dummy} вошел в игорный дом!')
 
-    def new_goose_add(self, name: str, type: Literal['Воюющий', 'Лечащий', 'Крикливый'], power: int):
+    def new_goose_add(self, name: str, type: Literal['Воюющий', 'Лечащий', 'Крикливый'], power: int) -> None:
+        """
+        Добавляет нового гуся в казино.
+        Создаёт объект гуся выбранного типа и добавляет его в коллекцию гусей.
+        :param name: имя гуся
+        :param type: тип гуся (Воюющий, Лечащий или Крикливый)
+        :param power: сила гуся
+        :return: Данная функция ничего не возвращает
+        """
         honker = CMD_TO_GOOSE[type](name, power)
-        self.geese.__add__(honker)
+        self.geese + honker
         self.logger.logging_message(f'{honker} вылупился из яйца!')
 
     def make_a_bid(self, player: Player):
+        """
+        Позволяет игроку сделать ставку в игровом автомате.
+        Размер ставки и выигрыш определяются случайным образом.
+        При недостатке средств игроку предлагается взять кредит (его отправляют за ним насильно).
+        :param player: объект игрока, делающего ставку
+        :return: Данная функция ничего не возвращает
+        """
         if player.balance < self.minimal_bid:
             self.logger.logging_message(
                 f'Игрок {player.repr()} не может сделать ставку — недостаточно средств! :(.'
@@ -52,7 +88,6 @@ class Casino:
         ruletka_bid = random.randint(self.minimal_bid, max_bid)
         self.balances[player] -= ruletka_bid
         self.logger.logging_message(f'Игрок {player.repr()} сделал ставку {ruletka_bid}$ в игровом автомате!\nКрутим слоты...')
-        time.sleep(1)
         winning_coefficient = random.randint(1, 10000)
         if winning_coefficient in range(1, 5000):
             cash_won = 0
@@ -85,29 +120,61 @@ class Casino:
         self.balances[player] += cash_won
         self.check_player_balance(player)
 
-    def eject_player(self, player: Player):
+    def eject_player(self, player: Player) -> None:
+        """
+        Удаляет игрока из казино.
+        Используется при отказе в кредите или полном банкротстве игрока.
+        :param player: объект игрока, подлежащего удалению
+        :return: Данная функция ничего не возвращает
+        """
         self.players.__delitem__(player)
         self.logger.logging_message(f'Игрок {player.repr()} сослан в лес на вечное заточение!')
 
-    def cook_goose(self, goose: WarGoose | HealerGoose | HonkGoose):
+    def cook_goose(self, goose: WarGoose | HealerGoose | HonkGoose) -> None:
+        """
+        Удаляет гуся из казино.
+        Вызывается при нокауте гуся в результате атаки.
+        :param goose: объект гуся, который будет удалён
+        :return: Данная функция ничего не возвращает
+        """
         self.geese.__delitem__(goose)
         self.logger.logging_message(f'Гусь {goose.repr()} был зажарен на костре и подан в качестве ужина!')
 
-    def all_goose_buff(self, multiplier: float):
+    def all_goose_buff(self, multiplier: float) -> None:
+        """
+        Увеличивает силу всех гусей в казино.
+        Используется во время специальных случайных событий (планировалось много где,
+        но пока используется только в Кровавой луне).
+        :param multiplier: множитель увеличения силы гусей
+        :return: Данная функция ничего не возвращает
+        """
         self.logger.logging_message(f'Сила всех гусей была увеличена в {multiplier} раз!')
         for goose in self.geese:
             goose.power = int(goose.power * multiplier)
 
-    def all_player_restock(self):
+    def all_player_restock(self) -> None:
+        """
+        Пополняет баланс всех игроков на фиксированную сумму.
+        Используется как случайное событие (приход степухи).
+        :return: Данная функция ничего не возвращает
+        """
         surplus = 5000
         self.logger.logging_message(f'СЛУЧАЙНОЕ СОБЫТИЕ: СТЕПУХА ПРИШЛА!\nСидя за игровым столом, молодые люди даже и не '
                                     f'заметили, как на телефонах всех из них прозвучало уведомление... \nТолько после окончания'
-                                    f'круга, под счастливый визг и звон бокалов, они отпраздновали приход стипендии...\n'
+                                    f' круга, под счастливый визг и звон бокалов, они отпраздновали приход стипендии...\n'
                                     f'Кошельки всех игроков пополнены на 5000$!')
         for player in self.players:
             self.balances[player] += surplus
 
-    def player_attacks_goose(self, player: Player, goose: WarGoose | HealerGoose | HonkGoose):
+    def player_attacks_goose(self, player: Player, goose: WarGoose | HealerGoose | HonkGoose) -> None:
+        """
+        Позволяет игроку атаковать гуся.
+        Урон зависит от уровня силы игрока.
+        При снижении здоровья гуся до нуля гусь удаляется из казино.
+        :param player: объект атакующего игрока
+        :param goose: объект гуся, подвергшегося атаке
+        :return: Данная функция ничего не возвращает
+        """
         damage = (400*int(1.5*player.damage_level+1))
         goose.hp -= damage
 
@@ -122,7 +189,12 @@ class Casino:
             )
             self.cook_goose(goose)
 
-    def new_member_appearance(self):
+    def new_member_appearance(self) -> None:
+        """
+        Добавляет нового участника в казино.
+        Случайным образом выбирается, появится ли новый игрок или новый гусь.
+        :return: Данная функция ничего не возвращает
+        """
         i = random.randint(1, 2)
         self.logger.logging_message(f'Кажется... в нашем казино пополнение!')
         if i == 1:
@@ -137,7 +209,14 @@ class Casino:
             stat = random.randint(250, 500)
             self.new_goose_add(name, type, stat)
 
-    def honkgoose_screams(self, goose: HonkGoose):
+    def honkgoose_screams(self, goose: HonkGoose) -> None:
+        """
+        Обрабатывает крик крикливого гуся.
+        Все игроки теряют часть денег из-за испуга.
+        Баланс игроков не может стать отрицательным.
+        :param goose: объект крикливого гуся
+        :return: Данная функция ничего не возвращает
+        """
         dropped_money = goose.scream()
 
         for player in self.players:
@@ -150,12 +229,25 @@ class Casino:
                 self.balances[player] = 0
                 self.check_player_balance(player)
 
-    def healergoose_heals(self, goose: HealerGoose, target: HealerGoose | WarGoose | HonkGoose):
+    def healergoose_heals(self, goose: HealerGoose, target: HealerGoose | WarGoose | HonkGoose) -> None:
+        """
+        Позволяет лечащему гусю восстановить здоровье другому гусю.
+        :param goose: объект лечащего гуся
+        :param target: объект гуся, которому восстанавливается здоровье
+        :return: Данная функция ничего не возвращает
+        """
         refill_health = goose.heal()
         target.hp += refill_health
         self.logger.logging_message(f'Гусь {goose.repr()} своими магическими силами длинного клюва исцелил гуся {target.repr()} на {refill_health} HP!\nТекущее здоровье гуся: {target.hp} HP')
 
-    def wargoose_bites(self, goose: WarGoose, target: Player):
+    def wargoose_bites(self, goose: WarGoose, target: Player) -> None:
+        """
+        Обрабатывает атаку воюющего гуся на игрока.
+        У игрока отнимается часть денег.
+        :param goose: объект воюющего гуся
+        :param target: объект игрока, подвергшегося атаке
+        :return: Данная функция ничего не возвращает
+        """
         money_stolen = goose.hard_attack()
         money_stolen = min(money_stolen, target.balance)
         self.balances[target] -= money_stolen
@@ -163,6 +255,12 @@ class Casino:
         self.check_player_balance(target)
 
     def give_credit_to_player(self, player: Player):
+        """
+        Выдаёт игроку кредит при соблюдении условий.
+        Если лимит кредитов исчерпан, игрок удаляется из казино.
+        :param player: объект игрока
+        :return: Данная функция ничего не возвращает
+        """
         if player.can_take_credit() == 1:
             self.balances[player] += 15000
             player.credit_count += 1
@@ -174,14 +272,27 @@ class Casino:
             self.logger.logging_message(f'Игроку {player.repr()} было отказано в кредите...')
             self.eject_player(player)
 
-    def take_credit_from_player(self, player: Player):
+    def take_credit_from_player(self, player: Player) -> None:
+        """
+        Пытается списать долг по кредиту с игрока.
+        Уменьшает количество кредитов при успешной оплате.
+        :param player: объект игрока
+        :return: Данная функция ничего не возвращает
+        """
         if player.can_pay_credit() == 1:
             self.balances[player] -= 20000
             player.credit_count -= 1
             self.logger.logging_message(f'Поздравим игрока {player.repr()}! Он смог выплатить долг по кредиту '
                                         f'№{player.credit_count+1}!\nТекущее количество кредитов у игрока: {player.credit_count}.')
 
-    def regular_goose_attack(self, goose: WarGoose | HealerGoose | HonkGoose, player: Player):
+    def regular_goose_attack(self, goose: WarGoose | HealerGoose | HonkGoose, player: Player) -> None:
+        """
+        Обрабатывает обычную атаку гуся на игрока.
+        Игрок может уклониться в зависимости от уровня ловкости.
+        :param goose: объект гуся
+        :param player: объект игрока
+        :return: Данная функция ничего не возвращает
+        """
         stolen_money = int(goose.power*goose.attack())
         dnd_chance = random.randint(1, 10)
         self.logger.logging_message(f'Гусь {goose.repr()} внезапно кусает игрока {player.repr()}!')
@@ -196,13 +307,25 @@ class Casino:
             self.logger.logging_message(f'Успех! От неожиданности игрок выронил {stolen_money}$!\nТекущий баланс игрока: {player.balance}$')
             self.check_player_balance(player)
 
-    def player_trains_in_gym(self, player: Player):
+    def player_trains_in_gym(self, player: Player) -> None:
+        """
+        Позволяет игроку тренироваться в зале.
+        Повышает ловкость игрока (максимум - 10) и уменьшает его баланс.
+        :param player: объект игрока
+        :return: Данная функция ничего не возвращает
+        """
         if player.can_train_in_gym:
             player.armor += 1
             player.balance -= player.armor*1000
             self.logger.logging_message(f'Игрок {player.repr()} посетил подвальную качалку и повысил свою ловкость!\nТекущее значение: {player.armor}/10.')
 
-    def player_trains_damage(self, player: Player):
+    def player_trains_damage(self, player: Player) -> None:
+        """
+        Позволяет игроку увеличить уровень наносимого урона.
+        Стоимость тренировки растёт с каждым уровнем.
+        :param player: объект игрока
+        :return: Данная функция ничего не возвращает
+        """
         cost = 2000 * (player.damage_level + 1)
 
         if player.can_train_damage():
@@ -214,31 +337,53 @@ class Casino:
                 f'Текущий урон: {400*int(1.5*player.damage_level+1)}\n'
             )
         
-    def blood_moon_emit(self, multiplier: float):
+    def blood_moon_emit(self, multiplier: float) -> None:
+        """
+        Активирует событие «Кровавая луна».
+        Увеличивает силу всех гусей в казино.
+        :param multiplier: множитель увеличения силы
+        :return: Данная функция ничего не возвращает
+        """
         self.logger.logging_message(f'СЛУЧАЙНОЕ СОБЫТИЕ: КРОВАВАЯ ЛУНА!\nВ темную ночь, когда все игроки спокойно раскладывают покер...\n'
                                     f'Никто не смотрит за окно, а там - пробуждается кровавая луна... Гуси бурлят гневом, и их глаза наливаются яростью...')
         self.all_goose_buff(multiplier)
 
-    def list_all_members(self):
+    def list_all_members(self) -> None:
+        """
+        Выводит список всех игроков и гусей в казино.
+        Используется для отображения текущего состояния симуляции.
+        :return: Данная функция ничего не возвращает
+        """
         self.logger.logging_message('Игроки и гуси на текущем ходе:')
         for player in self.players:
             self.logger.logging_message(player, with_step=False)
         for goose in self.geese:
             self.logger.logging_message(goose, with_step=False)
 
-    def win_message_check(self):
+    def win_message_check(self) -> None:
+        """
+        Проверяет условия завершения симуляции.
+        Игра завершается, если в казино не осталось игроков или гусей.
+        :return: Данная функция ничего не возвращает
+        """
         if not self.players.players:
-            print(f'КОНЕЦ СИМУЛЯЦИИ! Гуси сослали всех игроков в лес!\nТекущие гуси:\n')
+            print(f'\nКОНЕЦ СИМУЛЯЦИИ! Гуси сослали всех игроков в лес!\nТекущие гуси:\n')
             for goose in self.geese:
                 self.logger.logging_message(goose, with_step=False)
             self.game_ended = True
         elif not self.geese.geese:
-            print(f'КОНЕЦ СИМУЛЯЦИИ! Игроки поджарили на вертеле всех гусей!\nТекущие игроки:\n')
+            print(f'\nКОНЕЦ СИМУЛЯЦИИ! Игроки поджарили на вертеле всех гусей!\nТекущие игроки:\n')
             for player in self.players:
                 self.logger.logging_message(player, with_step=False)
             self.game_ended = True
 
-    def random_event_choose(self):
+    def random_event_choose(self) -> None:
+        """
+        Выбирает и выполняет случайное событие в казино.
+        Событие определяется случайным числом и может влиять
+        на игроков, гусей или общее состояние игры.
+        :return: Данная функция ничего не возвращает
+        """
         roll = random.randint(1, 110)
 
         self.win_message_check()
