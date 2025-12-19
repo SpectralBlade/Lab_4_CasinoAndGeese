@@ -32,7 +32,7 @@ class Player:
 
     # Проверки для случайных событий
     def can_take_credit(self) -> bool:
-        return self.credit_count <= 2 and self.balance == 0
+        return self.credit_count <= 2
 
     def can_pay_credit(self) -> bool:
         return self.balance >= 20000 and self.credit_count != 0

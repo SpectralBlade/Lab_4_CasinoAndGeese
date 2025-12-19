@@ -29,13 +29,13 @@ class Casino:
     def check_player_balance(self, player: Player) -> None:
         """
         Проверяет баланс игрока и при необходимости отправляет его за кредитом.
-        Если баланс игрока меньше минимальной ставки, вызывается процедура выдачи кредита.
+        Если баланс игрока равен нулю - вызывается процедура выдачи кредита.
         :param player: объект игрока, баланс которого проверяется.
         :return: Данная функция ничего не возвращает
         """
-        if player.balance < self.minimal_bid:
+        if player.balance <= 0:
             self.logger.logging_message(
-                f'Игрок {player.repr()} - околобанкрот! ({player.balance}$). Ему придется идти в Т-Банк за кредитом. :('
+                f'Игрок {player.repr()} - банкрот! ({player.balance}$). Ему придется идти в Т-Банк за кредитом. :('
             )
             self.give_credit_to_player(player)
 
@@ -261,7 +261,7 @@ class Casino:
         :param player: объект игрока
         :return: Данная функция ничего не возвращает
         """
-        if player.can_take_credit() == 1:
+        if player.can_take_credit():
             self.balances[player] += 15000
             player.credit_count += 1
             self.logger.logging_message(f'Из-за долговой ямы игрок {player.repr()} '
@@ -378,6 +378,10 @@ class Casino:
             self.game_ended = True
 
     def new_game_message(self) -> None:
+        """
+        Мини-функция для вывода стартового сообщения (больше полезна в логах).
+        :return: Данная функция ничего не возвращает
+        """
         self.logger.logging_message('############### НАЧАЛО НОВОЙ СИМУЛЯЦИИ ###############')
 
     def random_event_choose(self) -> None:
