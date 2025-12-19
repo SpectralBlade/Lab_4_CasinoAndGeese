@@ -23,6 +23,7 @@ def run_simulation(player_count: int, goose_count: int, steps: int, seed: int | 
     player_collection = PlayerCollection()
     goose_collection = GooseCollection()
     casino_777_banana = Casino(player_collection, goose_collection)
+    casino_777_banana.new_game_message()
 
     for _ in range(player_count):
         age = random.randint(16, 45)

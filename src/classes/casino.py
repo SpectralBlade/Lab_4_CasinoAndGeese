@@ -303,7 +303,7 @@ class Casino:
             if goose.hp <= 0:
                 self.cook_goose(goose)
         else:
-            self.balances[player] -= stolen_money
+            self.balances[player] -= min(stolen_money, player.balance)
             self.logger.logging_message(f'Успех! От неожиданности игрок выронил {stolen_money}$!\nТекущий баланс игрока: {player.balance}$')
             self.check_player_balance(player)
 
@@ -367,15 +367,18 @@ class Casino:
         :return: Данная функция ничего не возвращает
         """
         if not self.players.players:
-            print(f'\nКОНЕЦ СИМУЛЯЦИИ! Гуси сослали всех игроков в лес!\nТекущие гуси:\n')
+            self.logger.logging_message(f'\nКОНЕЦ СИМУЛЯЦИИ! Гуси сослали всех игроков в лес!\nТекущие гуси:\n')
             for goose in self.geese:
                 self.logger.logging_message(goose, with_step=False)
             self.game_ended = True
         elif not self.geese.geese:
-            print(f'\nКОНЕЦ СИМУЛЯЦИИ! Игроки поджарили на вертеле всех гусей!\nТекущие игроки:\n')
+            self.logger.logging_message(f'\nКОНЕЦ СИМУЛЯЦИИ! Игроки поджарили на вертеле всех гусей!\nТекущие игроки:\n')
             for player in self.players:
                 self.logger.logging_message(player, with_step=False)
             self.game_ended = True
+
+    def new_game_message(self) -> None:
+        self.logger.logging_message('############### НАЧАЛО НОВОЙ СИМУЛЯЦИИ ###############')
 
     def random_event_choose(self) -> None:
         """
