@@ -314,7 +314,7 @@ class Casino:
         :param player: объект игрока
         :return: Данная функция ничего не возвращает
         """
-        if player.can_train_in_gym:
+        if player.can_train_in_gym():
             player.armor += 1
             player.balance -= player.armor*1000
             self.logger.logging_message(f'Игрок {player.repr()} посетил подвальную качалку и повысил свою ловкость!\nТекущее значение: {player.armor}/10.')
