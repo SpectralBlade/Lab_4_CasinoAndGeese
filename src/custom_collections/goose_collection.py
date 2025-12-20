@@ -28,6 +28,9 @@ class GooseCollection:
         """Получение гуся по индексу."""
         return self.geese[index]
 
-    def get_by_type(self, goose_type: type[T]) -> list:
+    def get_by_type(self, goose_type: type[T], goose_list = []) -> list:
         """Вспомогательный метод для возвращения списка с гусями определенного типа."""
-        return [goose for goose in self.geese if type(goose) is goose_type]
+        for goose in self.geese:
+            if isinstance(goose, goose_type):
+                goose_list.append(goose)
+        return goose_list

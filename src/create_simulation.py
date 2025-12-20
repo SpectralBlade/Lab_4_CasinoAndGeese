@@ -36,7 +36,7 @@ def run_simulation(player_count: int, goose_count: int, steps: int, seed: int | 
         stat = random.randint(250, 500)
         casino_777_banana.new_goose_add(random.choice(GOOSE_NAMES), type, stat)
 
-    for i in range(1, steps+1):
+    for i in range(1, steps):
         if casino_777_banana.game_ended:
             break
 
