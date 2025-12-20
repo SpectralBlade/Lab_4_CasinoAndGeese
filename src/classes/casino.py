@@ -279,7 +279,7 @@ class Casino:
         :param player: объект игрока
         :return: Данная функция ничего не возвращает
         """
-        if player.can_pay_credit() == 1:
+        if player.can_pay_credit():
             self.balances[player] -= 20000
             player.credit_count -= 1
             self.logger.logging_message(f'Поздравим игрока {player.repr()}! Он смог выплатить долг по кредиту '
