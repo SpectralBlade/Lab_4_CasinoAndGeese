@@ -37,8 +37,8 @@ class Player:
     def can_pay_credit(self) -> bool:
         return self.balance >= 20000 and self.credit_count != 0
 
-    def can_train_in_gym(self, armor: int) -> bool:
-        return self.balance >= (1000*(armor+1)) and armor < 10
+    def can_train_in_gym(self) -> bool:
+        return self.balance >= (1000*(self.armor+1)) and armor < 10
 
     def can_train_damage(self) -> bool:
         cost = 2000 * (self.damage_level + 1)
