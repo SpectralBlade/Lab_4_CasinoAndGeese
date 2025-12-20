@@ -220,7 +220,7 @@ class Casino:
         dropped_money = goose.scream()
 
         for player in self.players:
-            loss = min(dropped_money, player.balance)
+            loss = min(dropped_money, self.balances[player])
             self.balances[player] -= loss
 
         self.logger.logging_message(f'Гусь {goose.repr()} кричит, и от испуга все игроки выронили по {dropped_money}$!')
@@ -249,7 +249,7 @@ class Casino:
         :return: Данная функция ничего не возвращает
         """
         money_stolen = goose.hard_attack()
-        money_stolen = min(money_stolen, target.balance)
+        money_stolen = min(money_stolen, self.balances[target])
         self.balances[target] -= money_stolen
         self.logger.logging_message(f'Наглый гусь {goose.repr()} больно укусил игрока {target.repr()} за ногу! Игрок теряет выпавшие у него из рук {money_stolen}$.')
         self.check_player_balance(target)
@@ -293,7 +293,7 @@ class Casino:
         :param player: объект игрока
         :return: Данная функция ничего не возвращает
         """
-        stolen_money = int(goose.power*goose.attack())
+        stolen_money = min(int(goose.power*goose.attack()), self.balances[player])
         dnd_chance = random.randint(1, 10)
         self.logger.logging_message(f'Гусь {goose.repr()} внезапно кусает игрока {player.repr()}!')
         if dnd_chance <= player.armor:
@@ -303,7 +303,7 @@ class Casino:
             if goose.hp <= 0:
                 self.cook_goose(goose)
         else:
-            self.balances[player] -= min(stolen_money, player.balance)
+            self.balances[player] -= stolen_money
             self.logger.logging_message(f'Успех! От неожиданности игрок выронил {stolen_money}$!\nТекущий баланс игрока: {player.balance}$')
             self.check_player_balance(player)
 
